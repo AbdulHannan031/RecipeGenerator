@@ -53,7 +53,7 @@ class SigninPage extends StatelessWidget {
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
-                color: Colors.greenAccent.shade700,
+                color: Colors.deepOrange.shade700,
               ),
             ),
             SizedBox(height: 20),
@@ -100,7 +100,7 @@ class SigninPage extends StatelessWidget {
             // Sign-In Button
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.greenAccent.shade700,
+                backgroundColor: Colors.deepOrange.shade700,
                 padding: EdgeInsets.symmetric(vertical: 15),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
@@ -117,23 +117,7 @@ class SigninPage extends StatelessWidget {
             SizedBox(height: 15),
 
             // Google Sign-In Button
-            ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.redAccent,
-                padding: EdgeInsets.symmetric(vertical: 15),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              icon: FaIcon(FontAwesomeIcons.google, color: Colors.white),
-              label: Text(
-                'Sign in with Google',
-                style: TextStyle(fontSize: 18, color: Colors.white),
-              ),
-              onPressed: () {
-                // Handle Google sign-in
-              },
-            ),
+
             SizedBox(height: 30),
 
             // Additional Sign-In Options (if needed)
@@ -155,7 +139,7 @@ class SigninPage extends StatelessWidget {
                     'Sign up',
                     style: TextStyle(
                       fontSize: 16,
-                      color: Colors.greenAccent.shade700,
+                      color: Colors.deepOrange.shade700,
                       fontWeight: FontWeight.bold,
                     ),
                   ),

@@ -12,7 +12,12 @@
           "package_name": "com.example.myapp"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "233024386245-s2vaua5ifpcvehv496dcd9530rf5q4kv.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyB75B_BAri3cmarbMZItZR0hOaM9_kwxlc"
@@ -20,7 +25,55 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "233024386245-s2vaua5ifpcvehv496dcd9530rf5q4kv.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "233024386245-0g6hqe6m16364huohv4j5ic21fhe6acb.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.myapp"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:233024386245:android:8b00b55a9c356aeb2cacac",
+        "android_client_info": {
+          "package_name": "com.hannan.recipeapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "233024386245-s2vaua5ifpcvehv496dcd9530rf5q4kv.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB75B_BAri3cmarbMZItZR0hOaM9_kwxlc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "233024386245-s2vaua5ifpcvehv496dcd9530rf5q4kv.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "233024386245-0g6hqe6m16364huohv4j5ic21fhe6acb.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.myapp"
+              }
+            }
+          ]
         }
       }
     }

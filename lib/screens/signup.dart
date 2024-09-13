@@ -8,15 +8,13 @@ class SignupPage extends StatefulWidget {
 }
 
 class _SignupPageState extends State<SignupPage> {
-  final TextEditingController usernameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController =
       TextEditingController();
 
   void signup() async {
-    if (usernameController.text.isEmpty ||
-        emailController.text.isEmpty ||
+    if (emailController.text.isEmpty ||
         passwordController.text.isEmpty ||
         confirmPasswordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -62,7 +60,6 @@ class _SignupPageState extends State<SignupPage> {
 
   @override
   void dispose() {
-    usernameController.dispose();
     emailController.dispose();
     passwordController.dispose();
     confirmPasswordController.dispose();
@@ -89,7 +86,7 @@ class _SignupPageState extends State<SignupPage> {
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
-                  color: Colors.greenAccent.shade700,
+                  color: Colors.deepOrange.shade700,
                 ),
               ),
               const SizedBox(height: 20),
@@ -106,16 +103,7 @@ class _SignupPageState extends State<SignupPage> {
               const SizedBox(height: 30),
 
               // Username TextField
-              TextField(
-                controller: usernameController,
-                decoration: InputDecoration(
-                  labelText: 'Username',
-                  prefixIcon: const Icon(Icons.person),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              ),
+
               const SizedBox(height: 15),
 
               // Email TextField
@@ -163,7 +151,7 @@ class _SignupPageState extends State<SignupPage> {
               // Sign-Up Button
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.greenAccent.shade700,
+                  backgroundColor: Colors.deepOrange.shade700,
                   padding: const EdgeInsets.symmetric(vertical: 15),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
@@ -196,7 +184,7 @@ class _SignupPageState extends State<SignupPage> {
                       'Sign in',
                       style: TextStyle(
                         fontSize: 16,
-                        color: Colors.greenAccent.shade700,
+                        color: Colors.deepOrange.shade700,
                         fontWeight: FontWeight.bold,
                       ),
                     ),

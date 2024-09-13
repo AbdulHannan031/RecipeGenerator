@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:myapp/screens/image.dart';
 import 'package:myapp/screens/profile.dart';
 import 'package:myapp/screens/save.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -24,7 +25,7 @@ class _HomePageState extends State<HomePage> {
     'Canada',
     'Mexico',
     'India',
-    'China'
+    'China',
     'Pakistan',
     'Brazil',
     'Russia',
@@ -178,23 +179,157 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void _showRecipeDialog(String recipe) {
+  void _showRecipeDialog(String jsonResponse) {
+    // Parse the JSON response
+    Map<String, dynamic> responseJson;
+    try {
+      responseJson = json.decode(jsonResponse);
+    } catch (e) {
+      _showErrorDialog('Error parsing recipe data.');
+      return;
+    }
+
+    // Extract recipe details
+    final recipe = responseJson['recipe'] as Map<String, dynamic>?;
+    if (recipe == null) {
+      _showErrorDialog('Invalid recipe format.');
+      return;
+    }
+
+    final title = recipe['title'] as String?;
+    final servings = recipe['servings'] as int?;
+    final country = recipe['country'] as String?;
+    final ingredients = (recipe['ingredients'] as List<dynamic>?)?.join('\n') ??
+        ''; // Join ingredients with line breaks
+    final description = recipe['description'] as String?;
+
+    // Format the description to have proper line breaks
+    final formattedDescription = description?.replaceAll(r'\n', '\n') ?? '';
+
+    // Show the dialog with the recipe information
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Generated Recipe'),
-          content: Text(recipe),
+          title: Text(
+            title ?? 'Recipe',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+              color: Colors.black87,
+            ),
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (servings != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8.0),
+                    child: Text(
+                      'Servings: $servings',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: Colors.black54,
+                      ),
+                    ),
+                  ),
+                if (country != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8.0),
+                    child: Text(
+                      'Country of Origin: $country',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: Colors.black54,
+                      ),
+                    ),
+                  ),
+                if (ingredients.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8.0),
+                    child: Text(
+                      'Ingredients:\n$ingredients',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: Colors.black54,
+                      ),
+                    ),
+                  ),
+                if (formattedDescription.isNotEmpty)
+                  Text(
+                    'How to Make:\n$formattedDescription',
+                    style: TextStyle(
+                      fontWeight: FontWeight.normal,
+                      fontSize: 16,
+                      color: Colors.black87,
+                    ),
+                  ),
+              ],
+            ),
+          ),
           actions: <Widget>[
             TextButton(
               onPressed: () {
+                // Handle Save for Future action
+                _saveRecipeForFuture(recipe);
                 Navigator.of(context).pop();
               },
-              child: Text('OK'),
+              child: Text(
+                'Save for Future',
+                style: TextStyle(
+                  color: Colors.blueAccent,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                // Optionally, you can add retry logic here if needed
+              },
+              child: Text(
+                'Retry',
+                style: TextStyle(
+                  color: Colors.redAccent,
+                  fontSize: 16,
+                ),
+              ),
             ),
           ],
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          backgroundColor: Colors.white,
+          contentPadding: EdgeInsets.all(20),
         );
       },
+    );
+  }
+
+  void _saveRecipeForFuture(Map<String, dynamic> recipe) async {
+    final prefs = await SharedPreferences.getInstance();
+    List<String>? savedRecipes = prefs.getStringList('saved_recipes');
+
+    if (savedRecipes == null) {
+      savedRecipes = [];
+    }
+
+    // Convert the recipe to a string format for saving
+    final String recipeString = json.encode(recipe);
+
+    // Add the new recipe
+    savedRecipes.add(recipeString);
+
+    // Save the updated list back to SharedPreferences
+    await prefs.setStringList('saved_recipes', savedRecipes);
+
+    // Optionally, show a confirmation dialog or message
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Recipe saved for future!')),
     );
   }
 
@@ -231,6 +366,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: Center(
         child: _isLoading
             ? CircularProgressIndicator() // Show loader when loading
@@ -241,7 +377,13 @@ class _HomePageState extends State<HomePage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        // Ingredients TextField
+                        Container(
+                          padding: EdgeInsets.only(bottom: 10.0),
+                          child: Image.asset('assets/images/wait-gif.gif'),
+                          height: 200.0,
+                          // Corrected path
+                        ),
+
                         Row(
                           children: [
                             Expanded(
@@ -308,7 +450,7 @@ class _HomePageState extends State<HomePage> {
                           style: ElevatedButton.styleFrom(
                             foregroundColor: Colors.greenAccent,
                             padding: EdgeInsets.symmetric(vertical: 15),
-                            backgroundColor: Colors.green,
+                            backgroundColor: Colors.deepOrange,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
                             ),
@@ -324,10 +466,6 @@ class _HomePageState extends State<HomePage> {
                         if (_recipe != null) // Display the recipe if available
                           Padding(
                             padding: const EdgeInsets.only(top: 20),
-                            child: Text(
-                              'Generated Recipe:\n$_recipe',
-                              style: TextStyle(fontSize: 16),
-                            ),
                           ),
                       ],
                     ),
@@ -354,9 +492,9 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
         currentIndex: _selectedIndex,
-        selectedItemColor: Colors.greenAccent.shade700,
+        selectedItemColor: Colors.deepOrange.shade700,
         unselectedItemColor: Colors.black,
-        backgroundColor: Colors.lightBlue.shade50,
+        backgroundColor: Colors.white,
         onTap: _onItemTapped,
       ),
     );

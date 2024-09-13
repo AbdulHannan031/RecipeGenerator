@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ImageGenerationPage extends StatefulWidget {
   @override
@@ -11,7 +12,6 @@ class ImageGenerationPage extends StatefulWidget {
 
 class _ImageGenerationPageState extends State<ImageGenerationPage> {
   bool _isLoading = false;
-  String _response = '';
 
   Future<void> _analyzeImage(File imageFile) async {
     final String apiUrl = 'https://aksa.pythonanywhere.com/analyze-recipe';
@@ -29,16 +29,7 @@ class _ImageGenerationPageState extends State<ImageGenerationPage> {
       final responseData = await response.stream.bytesToString();
 
       if (response.statusCode == 200) {
-        final responseJson = json.decode(responseData);
-        final result = responseJson['result'] as String;
-
-        if (result.trim() == "I don't know.") {
-          _showErrorDialog('Unable to identify ingredients.');
-        } else {
-          setState(() {
-            _response = result.trim(); // Update _response
-          });
-        }
+        _showResultDialog(responseData); // Show result dialog
       } else {
         _showErrorDialog('Error: ${response.statusCode}');
       }
@@ -61,7 +52,96 @@ class _ImageGenerationPageState extends State<ImageGenerationPage> {
     }
   }
 
-  Future<void> _showErrorDialog(String message) async {
+  Future<void> _showResultDialog(String resultJson) async {
+    try {
+      // Decode the outer JSON string to get the inner JSON string
+      final Map<String, dynamic> outerResult = json.decode(resultJson);
+      final String innerJsonString = outerResult['result'] ?? '{}';
+
+      // Decode the inner JSON string to get the recipe data
+      final Map<String, dynamic> result = json.decode(innerJsonString);
+      final Map<String, dynamic> recipe = result['recipe'];
+
+      // Extract fields from the recipe
+      final String title = recipe['title'] ?? 'Unknown Title';
+      final String servings = recipe['servings'] ?? 'Unknown Servings';
+      final List<dynamic> ingredientsList = recipe['ingredients'] ?? [];
+      final String ingredients = ingredientsList.isNotEmpty
+          ? ingredientsList.map((i) => i.toString()).join(', ')
+          : 'No ingredients available';
+      final String description =
+          recipe['description']?.replaceAll('\\n', '\n') ??
+              'No description available';
+
+      // Show the dialog
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Recipe Result'),
+            content: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text('Title: $title',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  SizedBox(height: 8),
+                  Text('Servings: $servings'),
+                  SizedBox(height: 8),
+                  Text('Ingredients:',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  Text(ingredients),
+                  SizedBox(height: 8),
+                  Text('Description:',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  Text(description),
+                ],
+              ),
+            ),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () async {
+                  Navigator.of(context).pop();
+                  // Save the result
+                  await _saveRecipe(title, servings, ingredients, description);
+                },
+                child: Text('Save'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  // Retry logic, if any
+                },
+                child: Text('Retry'),
+              ),
+            ],
+          );
+        },
+      );
+    } catch (e) {
+      _showErrorDialog('Error parsing recipe result: $e');
+    }
+  }
+
+  Future<void> _saveRecipe(String title, String servings, String ingredients,
+      String description) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String recipeData = json.encode({
+      'title': title,
+      'servings': servings,
+      'ingredients': ingredients,
+      'description': description,
+    });
+    final List<String>? savedRecipes = prefs.getStringList('recipes');
+    final List<String> updatedRecipes = savedRecipes ?? [];
+    updatedRecipes.add(recipeData);
+    await prefs.setStringList('recipes', updatedRecipes);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Recipe saved successfully!')),
+    );
+  }
+
+  void _showErrorDialog(String message) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -87,8 +167,10 @@ class _ImageGenerationPageState extends State<ImageGenerationPage> {
       appBar: AppBar(
         centerTitle: true,
         automaticallyImplyLeading: false,
-        title: Text('Image Upload and Analysis'),
+        title: Text('Recipe From Food Image'),
+        backgroundColor: Colors.deepOrange,
       ),
+      backgroundColor: Colors.white,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -97,7 +179,7 @@ class _ImageGenerationPageState extends State<ImageGenerationPage> {
               width: 150,
               height: 150,
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey, width: 2),
+                border: Border.all(color: Colors.deepOrange, width: 2),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: GestureDetector(
@@ -106,22 +188,13 @@ class _ImageGenerationPageState extends State<ImageGenerationPage> {
                   child: Icon(
                     Icons.upload,
                     size: 50,
-                    color: Colors.blue,
+                    color: Colors.deepOrange,
                   ),
                 ),
               ),
             ),
             SizedBox(height: 20),
-            if (_isLoading)
-              CircularProgressIndicator()
-            else
-              Text(
-                _response.isEmpty
-                    ? 'Tap the icon to upload an image of food to get a recipe'
-                    : _response,
-                style: TextStyle(fontSize: 16),
-                textAlign: TextAlign.center,
-              ),
+            if (_isLoading) CircularProgressIndicator(),
           ],
         ),
       ),
